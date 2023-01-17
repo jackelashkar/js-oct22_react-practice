@@ -1,11 +1,37 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './App.scss';
+import cn from 'classnames';
 
-// import usersFromServer from './api/users';
-// import productsFromServer from './api/products';
-// import categoriesFromServer from './api/categories';
+import usersFromServer from './api/users';
+import productsFromServer from './api/products';
+import categoriesFromServer from './api/categories';
+
+function getUser(userId: number) {
+  const foundUser = usersFromServer.find(user => user.id === userId);
+
+  return foundUser || null;
+}
+
+export const newCategories = categoriesFromServer.map(category => ({
+  ...category,
+  user: getUser(category.ownerId),
+}));
+
+function getCategory(productId: number) {
+  const foundCategory
+    = newCategories.find(category => category.id === productId);
+
+  return foundCategory || null;
+}
+
+export const newProducts = productsFromServer.map(product => ({
+  ...product,
+  category: getCategory(product.categoryId),
+}));
 
 export const App: React.FC = () => {
+  const [text, setText] = useState('');
+
   return (
     <div className="section">
       <div className="container">
@@ -22,28 +48,14 @@ export const App: React.FC = () => {
               >
                 All
               </a>
-
-              <a
-                data-cy="FilterUser"
-                href="#/"
-              >
-                User 1
-              </a>
-
-              <a
-                data-cy="FilterUser"
-                href="#/"
-                className="is-active"
-              >
-                User 2
-              </a>
-
-              <a
-                data-cy="FilterUser"
-                href="#/"
-              >
-                User 3
-              </a>
+              {usersFromServer.map(user => (
+                <a
+                  data-cy="FilterUser"
+                  href="#/"
+                >
+                  {user.name}
+                </a>
+              ))}
             </p>
 
             <div className="panel-block">
@@ -53,7 +65,10 @@ export const App: React.FC = () => {
                   type="text"
                   className="input"
                   placeholder="Search"
-                  value="qwe"
+                  value={text}
+                  onChange={(event) => {
+                    setText(event.target.value);
+                  }}
                 />
 
                 <span className="icon is-left">
@@ -79,37 +94,15 @@ export const App: React.FC = () => {
               >
                 All
               </a>
-
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 1
-              </a>
-
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1"
-                href="#/"
-              >
-                Category 2
-              </a>
-
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 3
-              </a>
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1"
-                href="#/"
-              >
-                Category 4
-              </a>
+              {categoriesFromServer.map(category => (
+                <a
+                  data-cy="Category"
+                  className="button mr-2 my-1 is-info"
+                  href="#/"
+                >
+                  {category.title}
+                </a>
+              ))}
             </div>
 
             <div className="panel-block">
@@ -187,53 +180,36 @@ export const App: React.FC = () => {
             </thead>
 
             <tbody>
-              <tr data-cy="Product">
-                <td className="has-text-weight-bold" data-cy="ProductId">
-                  1
-                </td>
+              {newProducts.map(endProduct => (
+                <tr data-cy="Product">
 
-                <td data-cy="ProductName">Milk</td>
-                <td data-cy="ProductCategory">🍺 - Drinks</td>
+                  <td className="has-text-weight-bold" data-cy="ProductId">
+                    {endProduct.id}
+                  </td>
 
-                <td
-                  data-cy="ProductUser"
-                  className="has-text-link"
-                >
-                  Max
-                </td>
-              </tr>
+                  <td data-cy="ProductName">{endProduct.name}</td>
+                  <td data-cy="ProductCategory">
+                    {endProduct.category?.icon}
+                    -
+                    {endProduct.category?.title}
+                  </td>
 
-              <tr data-cy="Product">
-                <td className="has-text-weight-bold" data-cy="ProductId">
-                  2
-                </td>
+                  <td
+                    data-cy="ProductUser"
+                    className={cn(
+                      'has-text-link',
+                      {
+                        'has-text-danger':
+                          endProduct.category?.user?.sex === 'f',
+                      },
+                    )}
+                  >
+                    {endProduct.category?.user?.name}
+                  </td>
+                </tr>
 
-                <td data-cy="ProductName">Bread</td>
-                <td data-cy="ProductCategory">🍞 - Grocery</td>
+              ))}
 
-                <td
-                  data-cy="ProductUser"
-                  className="has-text-danger"
-                >
-                  Anna
-                </td>
-              </tr>
-
-              <tr data-cy="Product">
-                <td className="has-text-weight-bold" data-cy="ProductId">
-                  3
-                </td>
-
-                <td data-cy="ProductName">iPhone</td>
-                <td data-cy="ProductCategory">💻 - Electronics</td>
-
-                <td
-                  data-cy="ProductUser"
-                  className="has-text-link"
-                >
-                  Roma
-                </td>
-              </tr>
             </tbody>
           </table>
         </div>
